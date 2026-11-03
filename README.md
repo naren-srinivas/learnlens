@@ -76,7 +76,8 @@ Deployment references: [GitHub Pages workflow documentation](https://docs.github
 - Finite-difference verification of the manual NTK Jacobian, exact parity recovery on unseen data, rank deficiency and inconsistent parity equations, non-nested leap support, fixed optimizer updates, confidence intervals and censoring.
 - Seven-cell notebook executed end to end; executed copy in `outputs/LearnLens_executed.ipynb`.
 - Local Streamlit health endpoint returned `ok`.
-- GitHub Actions runs the Python/app checks on Linux. Local checks were on Windows; remote CI is reported separately.
+- GitHub Actions passed the Python/app checks on Linux; local Windows checks also passed.
+- Public GitHub Pages deployment verified, including live browser training and benchmark filter interactions. The Python-backed Streamlit app remains local/deployment-ready.
 
 See `RESEARCH_AUDIT.md` for limitations and `VALIDATION.md` for deployment/browser status. `requirements-lock.txt` records the Windows verification environment; portable top-level dependencies remain in `requirements.txt`.
 
