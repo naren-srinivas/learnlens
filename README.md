@@ -72,7 +72,7 @@ Deployment references: [GitHub Pages workflow documentation](https://docs.github
 
 ## Verification
 
-- **41 passing tests**, including 13 live app problem/learner paths and the d/k control regression.
+- **43 passing tests**, including 13 live app problem/learner paths, the d/k regression, and two single-class regressions.
 - Finite-difference verification of the manual NTK Jacobian, exact parity recovery on unseen data, rank deficiency and inconsistent parity equations, non-nested leap support, fixed optimizer updates, confidence intervals and censoring.
 - Seven-cell notebook executed end to end; executed copy in `outputs/LearnLens_executed.ipynb`.
 - Local Streamlit health endpoint returned `ok`.

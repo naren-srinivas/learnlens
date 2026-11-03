@@ -8,6 +8,7 @@ import streamlit as st
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.dummy import DummyClassifier
 from learnlens import k_sparse_parity, margin_halfspace, k_decision_list
 from learnlens.models import NumpyMLP, SklearnWrapper
 from learnlens.baselines import GF2Parity
@@ -67,18 +68,23 @@ with live:
             rng = np.random.default_rng(int(seed))
             X, y = problem.sample(n, rng=rng)
             Xt, yt = problem.sample(1000, rng=rng)
-            model = factory().fit(X, y)
+            def fit_model(Xtr, ytr):
+                if learner_name in ["LogisticRegression", "KernelSVM(rbf)"] and len(np.unique(ytr)) == 1:
+                    return SklearnWrapper("Observed-class constant", lambda: DummyClassifier(strategy="most_frequent")).fit(Xtr, ytr)
+                return factory().fit(Xtr, ytr)
+            fallback = learner_name in ["LogisticRegression", "KernelSVM(rbf)"] and len(np.unique(y)) == 1
+            model = fit_model(X, y)
             errors = int(np.sum(model.predict(Xt) != yt))
             train_error = float(np.mean(model.predict(X) != y))
             # GF2 only fits consistent parity; random labels need not be consistent.
             rad, li = None, None
             if learner_name != "GF2 exact parity":
                 def fit_predict(Xtr, ytr, Xq):
-                    return factory().fit(Xtr, ytr).predict(Xq)
+                    return fit_model(Xtr, ytr).predict(Xq)
                 rad = empirical_rademacher(fit_predict, X, n_draws=3, rng=rng)
                 li = learnability_index(errors/len(yt), errors/len(yt)-train_error, rad)
             st.session_state.result = dict(problem=problem.name, learner=learner_name, d=d, k=k,
-                n=n, seed=int(seed), test_error=errors/len(yt), train_error=train_error,
+                n=n, seed=int(seed), constant_class_fallback=fallback, test_error=errors/len(yt), train_error=train_error,
                 test_error_ci=wilson_interval(errors, len(yt)), random_label_correlation=rad,
                 posthoc_li=li, updates=getattr(model, "updates_", 0),
                 majority_test_error=float(min(np.mean(yt==1), np.mean(yt==-1))),
@@ -86,6 +92,8 @@ with live:
     if "result" in st.session_state:
         r = st.session_state.result
         st.caption(f"Result: {r['learner']} on {r['problem']}, n={r['n']}, seed={r['seed']}")
+        if r['constant_class_fallback']:
+            st.info("The training draw contains only one label. The requested learner needs two classes, so this result uses the observed-class constant baseline. Increase n or change seed to observe the other class.")
         cols = st.columns(3)
         cols[0].metric("Test error", f"{r['test_error']:.3f}")
         cols[1].metric("Train error", f"{r['train_error']:.3f}")

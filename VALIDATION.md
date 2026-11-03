@@ -1,6 +1,6 @@
 # Validation record — 3 November 2026
 
-- Windows / Python 3.12: 41 tests passed, including 13 problem/learner app combinations.
+- Windows / Python 3.12: 43 tests passed, including 13 problem/learner app combinations and two single-class fallback regressions.
 - Full seven-cell notebook executed locally; `outputs/LearnLens_executed.ipynb` retains the outputs. Hosted Colab unverified.
 - Controlled benchmark: 108 fits completed; GF2 zero error on all test draws; mean SGD test error 0.328648 on the specified grid. See source/config hashes in JSON.
 - Streamlit localhost server started and health endpoint returned `ok`.
