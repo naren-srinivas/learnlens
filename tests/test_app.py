@@ -37,3 +37,17 @@ def test_k_control_never_exceeds_dimension():
     app = AppTest.from_file(APP,default_timeout=30).run()
     next(w for w in app.slider if w.label == 'Ambient dimension d').set_value(4).run()
     assert next(w for w in app.slider if w.label == 'Sparsity / list length k').max == 4
+
+
+@pytest.mark.parametrize('learner',['LogisticRegression','KernelSVM(rbf)'])
+def test_single_class_decision_list_uses_explicit_fallback(learner):
+    app = AppTest.from_file(APP,default_timeout=60).run()
+    next(w for w in app.selectbox if w.label == 'Problem').select('k-decision list').run()
+    next(w for w in app.slider if w.label == 'Ambient dimension d').set_value(8).run()
+    next(w for w in app.slider if w.label == 'Sparsity / list length k').set_value(8).run()
+    next(w for w in app.select_slider if w.label == 'Training samples n').set_value(50)
+    next(w for w in app.selectbox if w.label == 'Learner').select(learner)
+    app.button[0].click().run()
+    assert not app.exception
+    assert app.session_state['result']['constant_class_fallback']
+    assert any('only one label' in item.value for item in app.info)
