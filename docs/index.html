@@ -69,8 +69,8 @@
     <div class="card"><div class="eyebrow">AUDITED EXPERIMENT · FIXED OPTIMIZATION BUDGET</div>
     <h2>Data is only part of the learning story.</h2>
     <p>Compare an SGD network with an exact parity solver on the same hidden target and training samples. Each network receives 400 updates, regardless of sample size.</p>
-    <div class="controls"><label>Dimension <select id="bench-d"><option>12</option><option>24</option></select></label>
-    <label>Parity sparsity <select id="bench-k"><option>2</option><option>3</option><option>4</option></select></label></div>
+    <div class="controls"><label for="bench-d">Dimension <select id="bench-d"><option>12</option><option>24</option></select></label>
+    <label for="bench-k">Parity sparsity <select id="bench-k"><option>2</option><option>3</option><option>4</option></select></label></div>
     <div id="benchmark-chart" role="img" aria-label="Mean test errors by training sample size"></div>
     <p><span style="color:#a99bff">● SGD</span> &nbsp; <span style="color:#5bdbb5">● Exact GF2</span> &nbsp; Points show individual seeds; lines connect seed means. Dashed line: balanced chance.</p>
     <div class="stat-grid"><div class="stat"><div class="label">Independent model fits</div><div class="value" id="fit-count">—</div></div><div class="stat"><div class="label">SGD updates per fit</div><div class="value">400</div></div><div class="stat"><div class="label">Data / init seeds</div><div class="value">3</div></div></div>
@@ -83,9 +83,9 @@
   <div class="panel" id="panel-live">
     <div class="card">
       <p style="margin-top:0;">Train a tiny 2-layer MLP (tanh hidden units, SGD, manual backprop — same architecture as the Python NumpyMLP) live, entirely client-side.</p>
-      <label>Sparsity k <span id="k-out">3</span></label>
+      <label for="k-slider">Sparsity k <span id="k-out">3</span></label>
       <input type="range" id="k-slider" min="1" max="5" value="3" step="1">
-      <label style="margin-top:12px;">Training samples n <span id="n-out">500</span></label>
+      <label for="n-slider" style="margin-top:12px;">Training samples n <span id="n-out">500</span></label>
       <input type="range" id="n-slider" min="50" max="3000" value="500" step="50">
       <button class="primary" id="train-btn">Train model</button>
       <div class="stat-grid">
@@ -93,7 +93,9 @@
         <div class="stat"><div class="label">Chance level</div><div class="value">0.500</div></div>
         <div class="stat"><div class="label">Verdict</div><div class="value" id="stat-verdict" style="font-size:16px;">-</div></div>
       </div>
-      <canvas id="loss-canvas" height="160"></canvas>
+      <p>Fixed demo: d=12, width=32, 120 epochs, learning rate=0.15; 400 independent test draws, fixed seeds. This is illustrative, not the Python fixed-update benchmark.</p>
+      <canvas id="loss-canvas" height="160" style="width:100%;display:block" aria-label="Test error over training epochs"></canvas>
+      <p><a id="download-run" hidden>Download this training run as JSON</a></p>
     </div>
   </div>
 
@@ -106,7 +108,7 @@
 <p><strong>Scope:</strong> synthetic noiseless tasks, three seeds, small networks. This is exploratory infrastructure, with no new theorem or verified claim of research novelty.</p>
 <p>Foundations: <a href="https://proceedings.mlr.press/v178/abbe22a.html">Merged-staircase property, COLT 2022</a> · <a href="https://proceedings.mlr.press/v195/abbe23a.html">Leap complexity, COLT 2023</a></p>
 </div></div>
-  <div class="footer">LearnLens · A reproducible learning-theory workbench · CPU only · Source and deployment instructions included in the project README.</div>
+  <div class="footer">LearnLens · A reproducible learning-theory workbench · CPU only · <a href="https://github.com/naren-srinivas/learnlens">Source, methods & deployment instructions ↗</a></div>
 </div>
 
 <script>
@@ -179,6 +181,7 @@ document.getElementById('train-btn').onclick = async function(){
   const btn=this; btn.textContent='Training…'; btn.disabled=true;
   document.getElementById('stat-err').textContent='-';
   document.getElementById('stat-verdict').textContent='-';
+  document.getElementById('download-run').hidden=true;
   lossHistory=[]; await new Promise(r=>setTimeout(r,20));
 
   const d=12, k=parseInt(kSlider.value), n=parseInt(nSlider.value);
@@ -235,6 +238,11 @@ document.getElementById('train-btn').onclick = async function(){
   const finalErr = testError();
   document.getElementById('stat-err').textContent = finalErr.toFixed(3);
   document.getElementById('stat-verdict').textContent = finalErr<0.15 ? 'Learned' : (finalErr>0.4 ? 'Near chance' : 'Partial');
+  const artifact={schema_version:1,implementation:'browser demonstration',d,k,n,hidden,lr,epochs,batch,n_test:400,data_seed:42,init_seed:7,test_error:finalErr,test_error_history:lossHistory};
+  const link=document.getElementById('download-run');
+  if(link.href.startsWith('blob:')) URL.revokeObjectURL(link.href);
+  link.href=URL.createObjectURL(new Blob([JSON.stringify(artifact,null,2)],{type:'application/json'}));
+  link.download='learnlens-browser-run.json';link.hidden=false;
   btn.textContent='Train model'; btn.disabled=false;
 };
 </script>
